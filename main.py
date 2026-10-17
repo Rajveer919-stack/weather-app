@@ -1,33 +1,33 @@
 # ========== IMPORTS ==========
-import requests   # internet se data lene ke liye
+import requests   # to fetch data from the internet
 
 
-# ========== 1. API LINKS (free, key nahi chahiye) ==========
+# ========== 1. API LINKS (free, no key needed) ==========
 GEO_URL = "https://geocoding-api.open-meteo.com/v1/search"   # city -> location
-WEATHER_URL = "https://api.open-meteo.com/v1/forecast"       # location -> mausam
+WEATHER_URL = "https://api.open-meteo.com/v1/forecast"       # location -> weather
 
 
-# ========== 2. WEATHER CODE KA MATLAB ==========
+# ========== 2. MEANING OF WEATHER CODES ==========
 WEATHER_CODES = {
-    0: "Saaf aasman",
-    1: "Zyadatar saaf",
-    2: "Thode badal",
-    3: "Badal chhaye hue",
-    45: "Kohra",
-    61: "Halki baarish",
-    63: "Baarish",
-    65: "Tez baarish",
-    95: "Toofan",
+    0: "Clear sky",
+    1: "Mostly clear",
+    2: "Partly cloudy",
+    3: "Overcast",
+    45: "Fog",
+    61: "Light rain",
+    63: "Rain",
+    65: "Heavy rain",
+    95: "Thunderstorm",
 }
 
 
-# ========== 3. CITY KA LOCATION NIKALNA ==========
+# ========== 3. FIND THE LOCATION OF A CITY ==========
 def get_location(city):
     params = {"name": city, "count": 1}
     response = requests.get(GEO_URL, params=params, timeout=10)
     data = response.json()
 
-    # Agar city nahi mili to "results" key hoti hi nahi
+    # If the city is not found, the "results" key is missing
     if "results" not in data:
         return None
 
@@ -35,7 +35,7 @@ def get_location(city):
     return place["latitude"], place["longitude"], place["name"], place.get("country", "")
 
 
-# ========== 4. MAUSAM NIKALNA ==========
+# ========== 4. GET THE CURRENT WEATHER ==========
 def get_weather(lat, lon):
     params = {
         "latitude": lat,
@@ -46,36 +46,36 @@ def get_weather(lat, lon):
     return response.json()["current_weather"]
 
 
-# ========== 5. RESULT DIKHANA ==========
+# ========== 5. SHOW THE RESULT ==========
 def show_weather(city):
     location = get_location(city)
 
     if location is None:
-        print("City nahi mili, spelling check karo.")
+        print("City not found, please check the spelling.")
         return
 
     lat, lon, name, country = location
     weather = get_weather(lat, lon)
 
-    # Code ka matlab dhundo, na mile to "Unknown"
+    # Look up the weather code, use "Unknown" if it is not in the list
     condition = WEATHER_CODES.get(weather["weathercode"], "Unknown")
 
-    print(f"\nShehar: {name}, {country}")
+    print(f"\nCity: {name}, {country}")
     print(f"Temperature: {weather['temperature']} °C")
-    print(f"Hawa ki speed: {weather['windspeed']} km/h")
-    print(f"Halat: {condition}")
+    print(f"Wind speed: {weather['windspeed']} km/h")
+    print(f"Condition: {condition}")
 
 
 # ========== 6. MAIN PROGRAM ==========
 while True:
-    city = input("\nCity ka naam likho (exit ke liye q): ").strip()
+    city = input("\nEnter a city name (q to quit): ").strip()
 
     if city.lower() == "q":
         print("Bye!")
         break
 
-    # Internet na ho ya API band ho to program crash na ho
+    # Do not crash if there is no internet or the API is down
     try:
         show_weather(city)
     except requests.exceptions.RequestException:
-        print("Internet ya API mein problem hai, dobara try karo.")
+        print("Network or API problem, please try again.")
