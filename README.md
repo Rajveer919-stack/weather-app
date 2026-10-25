@@ -12,3 +12,8 @@ A command-line Python app that shows live weather for any city.
 2. Run: `python main.py`
 
 ## Example
+
+
+AUTHOR 
+
+RAJVEER VISHWAKARMA 
